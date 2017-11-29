@@ -53,6 +53,7 @@ class Simulation
     saBack()
     swBack()
     tempoFinal()
+    setNilZero()
   end
 
   def id
@@ -259,6 +260,73 @@ class Simulation
     end
   end
 
+  def setNilZero
+    @height.times do |i|
+      @width.times do |j|
+        if @table[i][j].nil?
+          @table[i][j] = 0
+        end
+      end
+    end
+  end
+
+  def getAnswers
+    #calculo dos min e max
+    array = []
+    @messages.each_with_index do |m, i|
+      array << @table[i+1][17]
+    end
+    min =  array.each_with_index.min
+    max =  array.each_with_index.max
+
+    puts "--------------------------------------------------------------------------"
+    puts "Primeira Requisicao Respondida ID: #{min[1]} Time: #{min[0]}"
+    puts "Ultima Requisicao Respondida ID: #{max[1]} Time: #{max[0]}"
+    puts "--------------------------------------------------------------------------"
+
+    #Calculo das ociosidades
+    ociosidadesw, ociosidadesa, ociosidadedb = 0,0,0
+    arraySa, arrayDb = [], []
+    arraySaOut, arrayDbOut = [], []
+    @height.downto(1) do |i|
+      if i > 2
+        ociosidadesw += (@table[i-1][2] - @table[i-2][2])
+      end
+      if i > 1
+        if @table[i-1][5] != 0
+          arraySa << @table[i-1][5]
+        end
+        if @table[i-1][8] != 0
+          arrayDb << @table[i-1][8]
+        end
+        if @table[i-1][7] != 0
+          arraySaOut << @table[i-1][7]
+        end
+        if @table[i-1][10] != 0
+          arrayDbOut << @table[i-1][10]
+        end
+      end
+    end
+
+    arraySa.size.times do |i|
+      if i < arraySa.size-1
+        ociosidadesa += (arraySa[i] - arraySaOut[i+1])
+      end
+    end
+    arrayDb.size.times do |i|
+      if i < arrayDb.size-1
+        ociosidadedb += (arrayDb[i] - arrayDbOut[i+1])
+      end
+    end
+
+
+    puts "--------------------------------------------------------------------------"
+    puts "Tempo total de ociosidade do Servidor Web: #{ociosidadesw}"
+    puts "Tempo total de ociosidade do Servidor App: #{ociosidadesa}"
+    puts "Tempo total de ociosidade do Banco de Dados: #{ociosidadedb}"
+    puts "--------------------------------------------------------------------------"
+  end
+
 end
 
 msgs = ARGV[0] ? ARGV[0] : 250
@@ -271,4 +339,10 @@ File.open("simulacao.csv", 'w') { |file|
       file.write("#{c},")
     end
     file.write("\n")
-  end }
+  end
+}
+
+s.getAnswers
+puts "Simulacao gerada com sucesso, resultados disponiveis no arquivo 'simulacao.csv', localizado na mesma pasta deste projeto.\nAs colunas do arquivo estao separadas por virgulas."
+
+
